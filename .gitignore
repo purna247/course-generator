@@ -52,6 +52,11 @@ backend/data/jobs_state.json
 # Scratch & Temporary Testing
 scratch/
 
+# Markdown & Internal Documentation (Push clean repository)
+*.md
+!README.md
+!readme.md
+
 # Reference Repos (Read-only reference materials)
 _reference_repos/
 
