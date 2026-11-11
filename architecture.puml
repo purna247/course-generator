@@ -1,0 +1,74 @@
+@startuml GamifiedCourseArchitecture
+title Subject-Agnostic Gamified Exam Preparation Platform
+left to right direction
+skinparam componentStyle rectangle
+skinparam packageStyle rectangle
+skinparam shadowing false
+skinparam defaultTextAlignment center
+skinparam ArrowColor #52627A
+skinparam ComponentBorderColor #53657D
+skinparam ComponentBackgroundColor #F8FAFC
+skinparam DatabaseBorderColor #53657D
+skinparam DatabaseBackgroundColor #EEF2FF
+
+actor Teacher
+actor Student
+
+package "Browser" {
+  component "React + Vite\nApp.jsx" as UI
+  component "Roadmap +\nQuestion Coverage" as Roadmap
+  component "Four-Screen Node Player\nJSON activity renderer" as Player
+  component "Boss Arena\nAssessment + blueprint" as BossUI
+  UI --> Roadmap
+  UI --> Player
+  UI --> BossUI
+}
+
+package "FastAPI backend" {
+  component "Upload / generation /\ncourse / coverage API" as API
+  component "Progress API\nnode unlocks, attempts,\nBoss submission" as ProgressAPI
+  component "Local preprocessor\nDOCX / PDF / PPTX text\n+ embedded media" as Preprocessor
+  component "Pydantic schemas\nvalidation + JSON contracts" as Schemas
+  component "Incremental course\ngeneration orchestrator" as Orchestrator
+  component "Provider pool\nretry + failover" as ProviderPool
+  component "Source-grounded module\ngeneration + validation" as Generation
+  API --> Preprocessor : uploaded documents
+  API --> Orchestrator : validated course request
+  API --> ProgressAPI : student progress events
+  Preprocessor --> Schemas : structured source context
+  Orchestrator --> ProviderPool : when configured
+  Orchestrator --> Generation
+  ProviderPool --> Generation : provider response
+  Generation --> Schemas : validate generated JSON
+  ProgressAPI --> Schemas : course and progress contracts
+  Generation --> Orchestrator : publish modules as ready
+}
+
+cloud "Configured AI provider(s)\noptional; demo mode if none" as Providers
+database "Local uploaded files\nbackend/data/uploads/" as UploadStore
+database "Job + course + progress checkpoints\nbackend/data/jobs_state.json" as StateStore
+
+Teacher --> UI : upload syllabus,\nexam questions, notes
+Student --> UI : select node, answer,\nrequest help, submit Boss
+UI --> API : HTTP /api/*\nVite proxy in development
+API --> UploadStore : save source files\nand extracted assets
+API --> StateStore : job state + published course
+Orchestrator --> StateStore : incremental module checkpoints
+ProgressAPI --> StateStore : attempts, unlocks,\ncoverage, Boss result
+ProviderPool <--> Providers : structured generation requests
+API --> UI : status, course, coverage
+ProgressAPI --> UI : authoritative progress\n+ assessment result
+
+note bottom of Generation
+Only source-backed modules are published.
+Original exam questions are retained and mapped;
+struggle events add linked supplementary practice.
+end note
+
+note bottom of Player
+Fixed four-screen node contract.
+Screen 3 renders variable question activities
+from validated JSON activity types.
+end note
+
+@enduml
